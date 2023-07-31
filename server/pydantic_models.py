@@ -1,17 +1,17 @@
-from pydantic_settings import BaseSettings
-from pydantic import PostgresDsn, BaseModel
+# from pydantic_settings import BaseSettings
+from pydantic import BaseModel
 
 
-class Settings(BaseSettings):
-    db_name: str
-    db_pass: str
-    db_url: PostgresDsn
-    debug: bool
-    seed: int
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+# class Settings(BaseSettings):
+#     db_name: str
+#     db_pass: str
+#     db_url: PostgresDsn
+#     debug: bool
+#     seed: int
+#
+#     class Config:
+#         env_file = ".env"
+#         env_file_encoding = "utf-8"
 
 
 # settings = Settings()
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
 class RegisterAdmin(BaseModel):
     admin_login: str
-    admin_hash_password: str
+    admin_password: str
     is_super_admin: bool = False
     is_active: bool = True
 
@@ -45,10 +45,13 @@ class Victim(BaseModel):
 
 class RegisterVictim(BaseModel):
     pc_name: str
+    id_admin: int
+    os_name: str
 
 
 class UpdateDataVictim(BaseModel):
-    os_name: str
+    victim_hash_id: str
+    country: str
     geolocation: str
     victim_ip: str
 
@@ -63,8 +66,8 @@ class LongpoolVictim(BaseModel):
     victim_hash_id: str
 
 
-class Command(BaseModel):
-    victim_id: int
+class RegisterCommand(BaseModel):
+    id_victim: int
     command: str
 
 

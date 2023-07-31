@@ -2,3 +2,4 @@ venv
 config.py
 test_config.py
 .env
+/server/test.py
