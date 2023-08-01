@@ -1,0 +1,6 @@
+fastapi
+dotenv
+secrets
+uvicorn
+SQLAlchemy
+psycopg2

@@ -1,9 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from fastapi.responses import JSONResponse
 import uvicorn
 import os
-from dotenv import load_dotenv
-# TODO come up with a short name for pydantic_models
+from sqlalchemy.orm import Session
 import pydantic_models
+from config import start
+import CRUD.victim
+from database import get_session
+
+
 
 app = FastAPI()
 
@@ -11,28 +16,36 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup_event():
     # set environ variables
-    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-    if os.path.exists(dotenv_path):
-        load_dotenv(dotenv_path)
+    start()
 
 
-@app.get("/")
-async def index():
-    return {"Hello": "World"}
+@app.get("/victim/signUP")
+async def victim_signUP(pdm_victim: pydantic_models.RegisterVictim, session: Session = Depends(get_session)):
+    try:
+        victim = CRUD.victim.register_victim(db=session, pdm_victim=pdm_victim)
+        CRUD.victim.set_login_date(db=session, pdm_victim=victim)
+        return victim.victim_hash_id
+    except Exception as _ex:
+        return JSONResponse(content={"message": "an unexpected error occurred on the server"}, status_code=500)
 
 
-@app.get("/env")
-async def env():
-    # TODO NOT FOR PRODUCTION
-    return os.environ
+@app.get("/victim/update_data")
+async def victim_update_data(pdm_victim: pydantic_models.UpdateDataVictim, session: Session = Depends(get_session)):
+    try:
+        CRUD.victim.update_data_victim(db=session, pdm_victim=pdm_victim)
+        CRUD.victim.set_login_date(db=session, pdm_victim=pdm_victim)
+        return "ok"
+    except Exception as _ex:
+        return JSONResponse(content={"message": "an unexpected error occurred on the server"}, status_code=500)
 
 
-@app.get("/victim_signUP")
-async def victim_sign_UP(victim: pydantic_models.RegisterVictim) -> str:
-    # TODO CRUD for victim registration
-    victim = ""
-    return victim.unique_number
-
+@app.get("/victim/login")
+async def login(pdm_victim: pydantic_models.LoginVictim, session: Session = Depends(get_session)):
+    try:
+        CRUD.victim.set_login_date(db=session, pdm_victim=pdm_victim)
+        return "ok"
+    except Exception as _ex:
+        return JSONResponse(content={"message": "an unexpected error occurred on the server"}, status_code=500)
 
 
 if __name__ == '__main__':
